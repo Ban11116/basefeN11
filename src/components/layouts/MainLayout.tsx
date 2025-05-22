@@ -4,17 +4,16 @@ import Footer from '../common/Footer';
 import Header from '../common/Header';
 
 const MainLayout = () => {
-  return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <Header />
-      
-      <main className="flex-grow min-h-[calc(100vh-88px)] pt-[600px]">
-        <Outlet />
-      </main>
+ return (
+  <div className="min-h-dvh  bg-black text-white">
+    <Header />
+       <main className=''>
+         <Outlet />
+       </main>
+    <Footer />
+  </div>
+);
 
-      <Footer />
-    </div>
-  );
 };
 
 

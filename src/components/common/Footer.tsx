@@ -38,7 +38,7 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-wrap justify-between min-w-[600px] text-sm">
+          <div className="flex flex-wrap justify-between text-sm gap-4">
             <div>
               <h3 className="font-semibold mb-2">Categories</h3>
               <ul className="space-y-1">
@@ -85,7 +85,7 @@ const Footer = () => {
 
         <hr className="my-6 border-gray-400" />
         <p className="text-center text-xs text-gray-200">
-          Ban
+         2023 Local Face Inc. All rights reserved
         </p>
       </div>
     </footer>

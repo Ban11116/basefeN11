@@ -2,26 +2,23 @@ import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../components/layouts/MainLayout";
 import Cart from "../pages/cart";
 import Order from "../pages/order";
+import Home from "../pages/home/Home";
+import Products from "../pages/products/products";
 
 
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />, // ✅ Dùng layout chung
+    element: <MainLayout />, 
     children: [
       {
-        index: true,
-        element: (
-          <div>
-            <h1>Hello World</h1>
-            <p>Welcome to the homepage</p>
-          </div>
-        ),
+       path: "home",
+       element:<Home/>
       },
       {
-        path: "about",
-        element: <div>About</div>,
+        path: "products",
+        element: <Products/>
       },
       {
         path: "cart",

@@ -11,7 +11,7 @@ const Header = (props: Props) => {
         
         <nav className="hidden md:flex gap-6 text-sm">
           <Link to="/">Home</Link>
-          <Link to="/shop">Shop</Link>
+          <Link to="/products">Shop</Link>
           <Link to="/about">About us</Link>
           <Link to="/services">Services</Link>
           <Link to="/blog">Blog</Link>

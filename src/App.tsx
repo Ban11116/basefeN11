@@ -7,11 +7,6 @@ import './App.css'
 function App() {
   const { count: countFromStore } = useCountStore();
 
-
-  useEffect(() => {
-
-  }, [])
-
   return (
     <>
       <RouterProvider router={router} />
