@@ -1,12 +1,13 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Cart = () => {
   return (
-    <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <h1 className="text-xl font-bold flex items-center gap-2 mb-6 text-gray-800">
+    <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-[#1c1c1c] text-white min-h-screen">
+      <h1 className="text-xl font-bold flex items-center gap-2 mb-6 text-orange-400">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="w-6 h-6 text-orange-600"
+          className="w-6 h-6 text-orange-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -21,59 +22,70 @@ const Cart = () => {
         Giỏ hàng của bạn
       </h1>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border text-sm text-left min-w-[600px]">
-          <thead className="bg-gray-100 font-semibold">
-            <tr>
-              <th className="p-3">SẢN PHẨM</th>
-              <th className="p-3">GIÁ</th>
-              <th className="p-3">SỐ LƯỢNG</th>
-              <th className="p-3">THÀNH TIỀN</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t">
-              <td className="p-3 flex items-center gap-2">
-                <img
-                  src="/product.jpg"
-                  alt="sp"
-                  className="w-16 h-16 object-cover"
-                />
-                Nước hoa CK One 100ml
-              </td>
-              <td className="p-3">850.000 ₫</td>
-              <td className="p-3">
-                <input type="number" value={1} className="w-16 border px-2" />
-              </td>
-              <td className="p-3">850.000 ₫</td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="overflow-x-auto bg-[#2b2b2b] rounded-md shadow-md">
+        <div className="min-w-[600px]">
+          <table className="w-full border text-sm text-left text-white">
+            <thead className="bg-[#333] text-orange-300">
+              <tr>
+                <th className="p-3">SẢN PHẨM</th>
+                <th className="p-3">GIÁ</th>
+                <th className="p-3">SỐ LƯỢNG</th>
+                <th className="p-3">THÀNH TIỀN</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-[#444]">
+                <td className="p-3 flex items-center gap-2">
+                  <img
+                    src="image/products1.png"
+                    alt="Nước hoa CK One 100ml"
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  Nước hoa CK One 100ml
+                </td>
+                <td className="p-3 text-orange-400">850.000 ₫</td>
+                <td className="p-3">
+                  <input
+                    type="number"
+                    value={1}
+                    className="w-16 sm:w-20 border border-gray-500 bg-[#1c1c1c] text-white px-2 py-1 rounded"
+                  />
+                </td>
+                <td className="p-3 text-orange-400">850.000 ₫</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-
-      <div className="mt-6 text-right">
-        <span className="font-bold text-lg text-red-600">
+      <div className="mt-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 text-right sm:text-left">
+        <span className="font-bold text-lg text-orange-500">
           Tạm tính: 1.050.000 ₫
         </span>
-        <button className="ml-4 bg-black text-white px-4 py-2">MUA NGAY</button>
+        <Link to="/order" className="w-full sm:w-auto">
+          <button className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded w-full sm:w-auto transition">
+            MUA NGAY
+          </button>
+        </Link>
       </div>
 
       <div className="mt-10">
-        <h2 className="text-lg font-semibold mb-4">Sản phẩm bạn đã xem</h2>
+        <h2 className="text-lg font-semibold mb-4 text-orange-400">
+          Sản phẩm bạn đã xem
+        </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {[...Array(5)].map((_, i) => (
+          {[1, 2, 3, 4, 5].map((num) => (
             <div
-              key={i}
-              className="border p-4 text-sm text-center rounded shadow-sm hover:shadow-md transition"
+              key={num}
+              className="bg-[#2a2a2a] border border-[#444] p-4 text-sm text-center rounded shadow hover:shadow-lg transition"
             >
               <img
-                src="/product.jpg"
-                alt={`sp-${i}`}
+                src={`image/products${num}.png`}
+                alt={`sp-${num}`}
                 className="mx-auto w-full h-40 object-cover rounded"
               />
-              <p className="mt-3 font-medium">Nước hoa demo</p>
-              <p className="text-red-600 font-bold">999.000 ₫</p>
+              <p className="mt-3 font-medium text-white">Nước hoa demo {num}</p>
+              <p className="text-orange-500 font-bold">999.000 ₫</p>
             </div>
           ))}
         </div>

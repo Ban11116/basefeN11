@@ -19,9 +19,13 @@ const Header = (props: Props) => {
 
         <div className="flex items-center gap-4 text-xl">
           <FiSearch />
+          <Link to="/login" aria-label="Đăng nhập">
           <FiUser />
+          </Link>
           <FiHeart />
-          <FiShoppingBag />
+         <Link to="/cart" aria-label="Giỏ hàng">
+            <FiShoppingBag />
+          </Link>
         </div>
       </div>
     </header>
