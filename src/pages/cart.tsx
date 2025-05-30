@@ -22,9 +22,12 @@ const Cart = () => {
         Giỏ hàng của bạn
       </h1>
 
-      <div className="overflow-x-auto bg-[#2b2b2b] rounded-md shadow-md max-h-[400px] overflow-y-auto">
+      <div
+  className="overflow-x-auto bg-[#2b2b2b] rounded-md shadow-md max-h-[400px] overflow-y-auto"
+  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+>
   <div className="min-w-[600px]">
-    <table className="w-full border text-sm text-left text-white">
+    <table className="w-full text-sm text-left text-white">
             <thead className="bg-[#333] text-orange-300">
               <tr>
                 <th className="p-3">SẢN PHẨM</th>
@@ -34,7 +37,7 @@ const Cart = () => {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-t border-[#444]">
+              <tr className="border-t border-black">
                 <td className="p-3 flex items-center gap-2">
                   <img
                     src="image/products1.png"
@@ -128,63 +131,7 @@ const Cart = () => {
                 </td>
                 <td className="p-3 text-orange-400">850.000 ₫</td>
               </tr>
-              <tr className="border-t border-[#444]">
-                <td className="p-3 flex items-center gap-2">
-                  <img
-                    src="image/products1.png"
-                    alt="Nước hoa CK One 100ml"
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  Nước hoa CK One 100ml
-                </td>
-                <td className="p-3 text-orange-400">850.000 ₫</td>
-                <td className="p-3">
-                  <input
-                    type="number"
-                    value={1}
-                    className="w-16 sm:w-20 border border-gray-500 bg-[#1c1c1c] text-white px-2 py-1 rounded"
-                  />
-                </td>
-                <td className="p-3 text-orange-400">850.000 ₫</td>
-              </tr>
-              <tr className="border-t border-[#444]">
-                <td className="p-3 flex items-center gap-2">
-                  <img
-                    src="image/products1.png"
-                    alt="Nước hoa CK One 100ml"
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  Nước hoa CK One 100ml
-                </td>
-                <td className="p-3 text-orange-400">850.000 ₫</td>
-                <td className="p-3">
-                  <input
-                    type="number"
-                    value={1}
-                    className="w-16 sm:w-20 border border-gray-500 bg-[#1c1c1c] text-white px-2 py-1 rounded"
-                  />
-                </td>
-                <td className="p-3 text-orange-400">850.000 ₫</td>
-              </tr>
-              <tr className="border-t border-[#444]">
-                <td className="p-3 flex items-center gap-2">
-                  <img
-                    src="image/products1.png"
-                    alt="Nước hoa CK One 100ml"
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  Nước hoa CK One 100ml
-                </td>
-                <td className="p-3 text-orange-400">850.000 ₫</td>
-                <td className="p-3">
-                  <input
-                    type="number"
-                    value={1}
-                    className="w-16 sm:w-20 border border-gray-500 bg-[#1c1c1c] text-white px-2 py-1 rounded"
-                  />
-                </td>
-                <td className="p-3 text-orange-400">850.000 ₫</td>
-              </tr>
+            
             </tbody>
           </table>
         </div>
