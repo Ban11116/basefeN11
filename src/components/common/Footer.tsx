@@ -9,7 +9,7 @@ import {
 const Footer = () => {
   return (
     <footer className="bg-[#1a1a1a] text-white text-sm">
-      <div className="max-w-[1100px] mx-auto px-4 py-10">
+      <div className="w-full px-12 py-10">
         <div className="flex flex-col md:flex-row md:justify-between md:gap-8">
 
           {/* Left Section */}
@@ -83,7 +83,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <hr className="my-6 border-gray-400" />
+        <hr className="my-6 border-gray-400 " />
         <p className="text-center text-xs text-gray-200">
           2023 Local Face Inc. All rights reserved
         </p>
