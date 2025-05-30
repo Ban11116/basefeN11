@@ -7,21 +7,62 @@ const Order = () => {
 
       <div className="bg-[#1a1a1a] border border-white/10 rounded-lg p-4 mb-8">
         <h2 className="text-lg font-semibold mb-4">Sản phẩm bạn đang đặt</h2>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <img
-            src="image/products1.png"
-            alt="Nước hoa CK One"
-            className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded"
-          />
-          <div className="flex-1">
-            <p className="font-semibold">Nước hoa CK One 100ml</p>
-            <p className="text-sm text-white/70">Số lượng: 1</p>
-            <p className="text-sm text-white/70">Đơn giá: 850.000 ₫</p>
-          </div>
-          <div className="font-semibold text-orange-500 text-right sm:text-left min-w-[100px]">
-            850.000 ₫
-          </div>
-        </div>
+        <div
+  className="max-h-[400px] overflow-y-auto space-y-4 pr-2"
+  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+>
+
+  <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#2b2b2b] p-4 rounded-md">
+    <img
+      src="image/products1.png"
+      alt="Nước hoa CK One"
+      className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded"
+    />
+    <div className="flex-1 text-center sm:text-left">
+      <p className="font-semibold">Nước hoa CK One 100ml</p>
+      <p className="text-sm text-white/70">Số lượng: 1</p>
+      <p className="text-sm text-white/70">Đơn giá: 850.000 ₫</p>
+    </div>
+    <div className="font-semibold text-orange-500 min-w-[100px] text-center sm:text-right">
+      850.000 ₫
+    </div>
+  </div>
+
+  <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#2b2b2b] p-4 rounded-md">
+    <img
+      src="image/products2.png"
+      alt="Nước hoa Dior Sauvage"
+      className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded"
+    />
+    <div className="flex-1 text-center sm:text-left">
+      <p className="font-semibold">Nước hoa Dior Sauvage 60ml</p>
+      <p className="text-sm text-white/70">Số lượng: 2</p>
+      <p className="text-sm text-white/70">Đơn giá: 2.450.000 ₫</p>
+    </div>
+    <div className="font-semibold text-orange-500 min-w-[100px] text-center sm:text-right">
+      4.900.000 ₫
+    </div>
+  </div>
+
+  <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#2b2b2b] p-4 rounded-md">
+    <img
+      src="image/products3.png"
+      alt="Nước hoa Bleu de Chanel"
+      className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded"
+    />
+    <div className="flex-1 text-center sm:text-left">
+      <p className="font-semibold">Nước hoa Bleu de Chanel 100ml</p>
+      <p className="text-sm text-white/70">Số lượng: 1</p>
+      <p className="text-sm text-white/70">Đơn giá: 2.750.000 ₫</p>
+    </div>
+    <div className="font-semibold text-orange-500 min-w-[100px] text-center sm:text-right">
+      2.750.000 ₫
+    </div>
+  </div>
+  
+</div>
+
+
       </div>
 
 
