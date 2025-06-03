@@ -1,4 +1,4 @@
-import React from 'react'
+
 import {
   FaTwitter,
   FaFacebookF,
@@ -12,7 +12,6 @@ const Footer = () => {
       <div className="w-full px-12 py-10">
         <div className="flex flex-col md:flex-row md:justify-between md:gap-8">
 
-          {/* Left Section */}
           <div className="md:w-[35%]">
             <h2 className="text-[#C15A00] font-bold text-2xl mb-3">Local Face</h2>
             <p className="mb-1 font-semibold">Subscribe to Our Newsletter:</p>
@@ -37,7 +36,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Right Section */}
+          
           <div className="flex flex-wrap flex-1 justify-between gap-y-6 mt-10 md:mt-0">
             {[
               {
