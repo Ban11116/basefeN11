@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   Tag,
@@ -36,7 +36,7 @@ interface Product {
   image: string;
 }
 
-const productql: Product[] = [
+const initialProducts: Product[] = [
   {
     key: "1",
     name: "iPhone 13 Pro",
@@ -82,83 +82,96 @@ const productql: Product[] = [
     image: "👕",
   },
 ];
-
-const columns = [
-  {
-    title: "",
-    dataIndex: "checkbox",
-    render: () => <input type="checkbox" />,
-  },
-  {
-    title: "Product Name",
-    dataIndex: "name",
-    render: (text: string, record: Product) => (
-      <Space>
-        <span style={{ fontSize: 20 }}>{record.image}</span>
-        <span>{text}</span>
-      </Space>
-    ),
-  },
-  {
-    title: "Category",
-    dataIndex: "category",
-  },
-  {
-    title: "Unit Price",
-    dataIndex: "price",
-  },
-  {
-    title: "In-Stock",
-    dataIndex: "stock",
-  },
-  {
-    title: "Discount",
-    dataIndex: "discount",
-  },
-  {
-    title: "Total Value",
-    dataIndex: "value",
-  },
-  {
-    title: "Action",
-    dataIndex: "action",
-    render: () => (
-      <Select
-        defaultValue="Publish"
-        size="small"
-        style={{ width: 100 }}
-        suffixIcon={<DownOutlined />}
-      >
-        <Option value="publish">Publish</Option>
-        <Option value="unpublish">Unpublish</Option>
-      </Select>
-    ),
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    render: (status: "Published" | "Unpublished") => (
-      <Tag
-        color={status === "Published" ? "#e6f4ff" : "#fff7e6"}
-        style={{ color: status === "Published" ? "#1677ff" : "#fa8c16" }}
-      >
-        {status}
-      </Tag>
-    ),
-  },
-];
-
 const menu = (
   <Menu>
     <Menu.Item>This Week</Menu.Item>
     <Menu.Item>Last Week</Menu.Item>
   </Menu>
 );
-
 const ProductQl: React.FC = () => {
+  const [searchText, setSearchText] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+  };
+
+  const filteredProducts = initialProducts.filter((item) => {
+    const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
+    const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
+    const matchesStatus = statusFilter ? item.status === statusFilter : true;
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  const columns = [
+    {
+      title: "",
+      dataIndex: "checkbox",
+      render: () => <input type="checkbox" />,
+    },
+    {
+      title: "Product Name",
+      dataIndex: "name",
+      render: (text: string, record: Product) => (
+        <Space>
+          <span style={{ fontSize: 20 }}>{record.image}</span>
+          <span>{text}</span>
+        </Space>
+      ),
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+    },
+    {
+      title: "Unit Price",
+      dataIndex: "price",
+    },
+    {
+      title: "In-Stock",
+      dataIndex: "stock",
+    },
+    {
+      title: "Discount",
+      dataIndex: "discount",
+    },
+    {
+      title: "Total Value",
+      dataIndex: "value",
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: () => (
+        <Select
+          defaultValue="Publish"
+          size="small"
+          style={{ width: 100 }}
+          suffixIcon={<DownOutlined />}
+        >
+          <Option value="publish">Publish</Option>
+          <Option value="unpublish">Unpublish</Option>
+        </Select>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (status: "Published" | "Unpublished") => (
+        <Tag
+          color={status === "Published" ? "#e6f4ff" : "#fff7e6"}
+          style={{ color: status === "Published" ? "#1677ff" : "#fa8c16" }}
+        >
+          {status}
+        </Tag>
+      ),
+    },
+  ];
+
   return (
     <div style={{ padding: 24, background: "#f9fafc" }}>
-      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+ <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
   <Col>
     <Title level={5} style={{ margin: 0 }}>Inventory Summary</Title>
   </Col>
@@ -169,8 +182,7 @@ const ProductQl: React.FC = () => {
           </Link>
   
 </Row>
-
-      <Row gutter={16} style={{ marginBottom: 24 }} align="stretch">
+<Row gutter={16} style={{ marginBottom: 24 }} align="stretch">
         <Col flex={1.2}>
           <div
             style={{
@@ -317,7 +329,6 @@ const ProductQl: React.FC = () => {
           </div>
         </Col>
       </Row>
-
       <div
         style={{
           display: "flex",
@@ -342,21 +353,24 @@ const ProductQl: React.FC = () => {
         >
           <Input
             prefix={<SearchOutlined />}
-            placeholder="Search"
+            placeholder="Search by product name"
+            value={searchText}
+            onChange={handleSearchChange}
             style={{ width: 200, minWidth: 150 }}
             size="middle"
           />
 
-          <Button icon={<FilterOutlined />} size="middle">
-            Filter
-          </Button>
+          
 
-          <Button size="middle">Share</Button>
-
-          <Select defaultValue="Bulk Action" style={{ width: 120 }} size="middle">
-            <Option value="delete">Delete</Option>
-            <Option value="publish">Publish</Option>
-            <Option value="unpublish">Unpublish</Option>
+          <Select
+            placeholder="Filter by status"
+            style={{ width: 160 }}
+            allowClear
+            onChange={(value) => setStatusFilter(value)}
+            size="middle"
+          >
+            <Option value="Published">Published</Option>
+            <Option value="Unpublished">Unpublished</Option>
           </Select>
         </div>
       </div>
@@ -364,12 +378,12 @@ const ProductQl: React.FC = () => {
       <Table
         rowSelection={{}}
         columns={columns}
-        dataSource={productql}
+        dataSource={filteredProducts}
         scroll={{ x: "max-content" }}
         pagination={{
           current: 1,
           pageSize: 10,
-          total: 200,
+          total: filteredProducts.length,
           showSizeChanger: false,
         }}
       />

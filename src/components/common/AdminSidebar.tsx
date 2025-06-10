@@ -9,6 +9,8 @@ import {
   CustomerServiceOutlined,
   GiftOutlined,
   LogoutOutlined,
+  AppstoreOutlined,
+  ClusterOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -83,7 +85,12 @@ const AdminSidebar = () => {
             <ShoppingCartOutlined style={iconStyle} />
           </Badge>
           </Link>
+          <Link to="/admin/category" aria-label="ql san pham">
+          <Badge size="small" offset={[6, 0]}>
+    <	ClusterOutlined style={iconStyle} />
+  </Badge>
           
+          </Link>
           <Link to="/admin/users" aria-label="Ng dùng">
           <UserOutlined style={iconStyle} />
           </Link>

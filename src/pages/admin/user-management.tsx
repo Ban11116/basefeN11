@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   Tag,
@@ -32,26 +32,34 @@ interface User {
 const users: User[] = [
   {
     key: "1",
-    name: "Janet Adebayo",
-    email: "janet.adebayo@gmail.com",
-    phone: "+2348065650833",
+    name: "ban",
+    email: "jbanlnph111222@gmail.com",
+    phone: "+855831662",
     status: "Active",
   },
   {
     key: "2",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+2347012345678",
+    name: "Phuong",
+    email: "phuongdm@gmail.com",
+    phone: "+0987517228",
     status: "Inactive",
   },
   {
     key: "3",
-    name: "Emily Smith",
-    email: "emily.smith@example.com",
-    phone: "+2348034567890",
+    name: "Dat",
+    email: "datnv@gmail.com.com",
+    phone: "+876552662",
     status: "Pending",
   },
 ];
+
+const removeVietnameseTones = (str: string) => {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+};
 
 const statusColors: Record<string, string> = {
   Active: "green",
@@ -111,14 +119,25 @@ const columns: ColumnsType<User> = [
 ];
 
 const UserManagement: React.FC = () => {
-  const total = users.length;
-  const active = users.filter((u) => u.status === "Active").length;
-  const inactive = users.filter((u) => u.status === "Inactive").length;
-  const pending = users.filter((u) => u.status === "Pending").length;
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  const filteredUsers = users.filter((user) => {
+    const name = removeVietnameseTones(user.name.toLowerCase());
+    const keyword = removeVietnameseTones(searchText.toLowerCase());
+    const matchesSearch = name.includes(keyword);
+    const matchesStatus =
+      statusFilter === "All" || user.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const total = filteredUsers.length;
+  const active = filteredUsers.filter((u) => u.status === "Active").length;
+  const inactive = filteredUsers.filter((u) => u.status === "Inactive").length;
+  const pending = filteredUsers.filter((u) => u.status === "Pending").length;
 
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-white rounded-xl shadow-sm w-full overflow-x-auto">
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="text-center" bordered={false}>
           <div className="text-gray-500 text-sm">All Users</div>
@@ -138,7 +157,6 @@ const UserManagement: React.FC = () => {
         </Card>
       </div>
 
-      {/* Header & Filter */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <h2 className="text-xl font-semibold whitespace-nowrap">User List</h2>
         <div className="flex flex-wrap gap-2 items-center justify-start md:justify-end">
@@ -146,8 +164,15 @@ const UserManagement: React.FC = () => {
             placeholder="Search"
             prefix={<SearchOutlined />}
             className="w-full sm:w-48"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
-          <Select defaultValue="All" className="w-full sm:w-32">
+          <Select
+            defaultValue="All"
+            value={statusFilter}
+            className="w-full sm:w-32"
+            onChange={(value) => setStatusFilter(value)}
+          >
             <Option value="All">All</Option>
             <Option value="Active">Active</Option>
             <Option value="Inactive">Inactive</Option>
@@ -157,12 +182,10 @@ const UserManagement: React.FC = () => {
           <Button>Bulk Action</Button>
         </div>
       </div>
-
-      {/* Table */}
       <div className="overflow-x-auto">
         <Table<User>
           columns={columns}
-          dataSource={users}
+          dataSource={filteredUsers}
           pagination={{ pageSize: 5 }}
           scroll={{ x: 600 }}
         />

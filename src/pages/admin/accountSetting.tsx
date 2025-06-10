@@ -33,14 +33,14 @@ const AccountSettings: React.FC = () => {
             layout="vertical"
             className="flex-1 max-w-xl"
             initialValues={{
-              firstName: "Usman",
-              lastName: "Ndako",
-              email: "usmanndako@gmail.com",
+              firstName: "Ban",
+              lastName: "Le",
+              email: "banlnph51162@gmail.com",
               phone: "0806550633",
-              address: "No. 93 Skyfield Apartments",
-              city: "Yaba",
-              country: "Nigeria",
-              state: "Lagos",
+              address: "Hoai duc",
+              city: "Ha noi",
+              country: "Thai binh",
+              state: "Hoang hoa",
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -95,12 +95,20 @@ const AccountSettings: React.FC = () => {
             <div className="relative">
               <Avatar src={avatar} size={96} className="rounded-md" />
               <Upload
-                showUploadList={false}
-                onChange={handleAvatarChange}
-                className="absolute top-0 right-0 bg-white rounded-full p-1 shadow-md cursor-pointer"
-              >
-                <UploadOutlined />
-              </Upload>
+  showUploadList={false}
+  onChange={handleAvatarChange}
+  beforeUpload={(file) => {
+    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+    if (!isJpgOrPng) {
+      alert("Chỉ chấp nhận ảnh định dạng JPG hoặc PNG!");
+    }
+    return isJpgOrPng || Upload.LIST_IGNORE;
+}}
+  className="absolute top-0 right-0 bg-white rounded-full p-1 shadow-md cursor-pointer"
+>
+  <UploadOutlined />
+</Upload>
+
             </div>
             <Button type="primary" className="w-32">Update</Button>
           </div>

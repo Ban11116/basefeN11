@@ -18,6 +18,10 @@ const getTitleFromPath = (pathname: string): string => {
   if (pathname.includes('/setting')) return 'Setting';
   if (pathname.includes('/login')) return 'Login';
   if (pathname.includes('/register')) return 'Register';
+  if (pathname.includes('/category')) return 'Quản lý danh mục';
+  if (pathname.includes('/newcategory')) return 'Thêm danh mục';
+
+
 
 
 

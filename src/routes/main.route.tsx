@@ -17,6 +17,8 @@ import AccountSettings from "../pages/admin/accountSetting";
 import NewProduct from "../pages/admin/newProduct";
 import AdminLogin from "../pages/auth/adminLogin";
 import AdminRegister from "../pages/auth/adminRegister";
+import CategoryManagement from "../pages/admin/category";
+import NewCategory from "../pages/admin/newCategory";
 
 
 
@@ -85,6 +87,14 @@ path: '/login',
       {
         path: "newproduct",
         element: <NewProduct />,
+      },
+      {
+        path: "category",
+        element: <CategoryManagement />,
+      },
+      {
+        path: "newcategory",
+        element: <NewCategory />,
       },
       {
   path: "/admin/login",

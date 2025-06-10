@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Tag,
@@ -28,7 +28,7 @@ interface Order {
   status: string;
 }
 
-const orders: Order[] = [
+const initialOrders: Order[] = [
   {
     key: "1",
     customer: "Ban",
@@ -43,7 +43,7 @@ const orders: Order[] = [
     customer: "Nam",
     date: "12 Aug 2022 - 12:25 am",
     type: "Home Delivery",
-    tracking: "93487r9",
+    tracking: "abc123",
     total: "₦25,000.00",
     status: "In-Progress",
   },
@@ -52,7 +52,7 @@ const orders: Order[] = [
     customer: "Đạt",
     date: "12 Aug 2022 - 12:25 am",
     type: "Home Delivery",
-    tracking: "93487r9",
+    tracking: "xyz789",
     total: "₦25,000.00",
     status: "Pending",
   },
@@ -69,6 +69,26 @@ const actionOptions = ["Completed", "In-Progress", "Pending"];
 
 const OrderManagement: React.FC = () => {
   const navigate = useNavigate();
+
+  const [orders] = useState<Order[]>(initialOrders);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders);
+  const [searchText, setSearchText] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+
+  useEffect(() => {
+    const filtered = orders.filter((order) => {
+      const matchesSearch =
+        order.customer.toLowerCase().includes(searchText.toLowerCase()) ||
+        order.tracking.toLowerCase().includes(searchText.toLowerCase());
+
+      const matchesStatus =
+        statusFilter === "All" || order.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    setFilteredOrders(filtered);
+  }, [searchText, statusFilter, orders]);
 
   const columns: ColumnsType<Order> = [
     {
@@ -155,17 +175,24 @@ const OrderManagement: React.FC = () => {
             placeholder="Search"
             prefix={<SearchOutlined />}
             className="w-full sm:w-48"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
-          <Select defaultValue="All" className="w-full sm:w-32">
+          <Select
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            className="w-full sm:w-32"
+          >
             <Option value="All">All</Option>
             <Option value="Completed">Completed</Option>
             <Option value="Pending">Pending</Option>
+            <Option value="In-Progress">In-Progress</Option>
             <Option value="Canceled">Canceled</Option>
           </Select>
-          <Button icon={<FilterOutlined />}>Filter</Button>
         </div>
       </div>
-      {orders.length === 0 ? (
+
+      {filteredOrders.length === 0 ? (
         <div className="py-20 text-center">
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -186,7 +213,7 @@ const OrderManagement: React.FC = () => {
       ) : (
         <Table<Order>
           columns={columns}
-          dataSource={orders}
+          dataSource={filteredOrders}
           pagination={{ pageSize: 5 }}
           scroll={{ x: 600 }}
           onRow={(record) => ({
