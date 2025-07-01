@@ -1,46 +1,62 @@
 import axios, {
   AxiosError,
-  type AxiosRequestConfig,
   type AxiosResponse,
+  type InternalAxiosRequestConfig,
 } from "axios";
-// import { NEXT_PUBLIC_API_URL, NEXT_PUBLIC_AUTH_API_URL } from "./env";
-// import { clearUserInfoAndToken, getCommonStateFromLocalStorage } from "./utils";
 
-interface CustomAxiosRequestConfig extends AxiosRequestConfig {
-  isAuthApi?: boolean;
-}
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8888/api";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.PUBLIC_API_URL,
+  baseURL: API_URL,
   timeout: 20000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  (error) => {
-    // log error ra để kiểm tra rồi sử lý
-
-    return Promise.reject(error);
-  }
-);
-
 axiosInstance.interceptors.request.use(
-  (config) => {
-    // const token = getCommonStateFromLocalStorage()?.token;
-    // if (token && config.headers) {
-    //   config.headers.set(
-    //     "Authorization",
-    //     (config as CustomAxiosRequestConfig).isAuthApi
-    //       ? `Bearer ${token}`
-    //       : token
-    //   );
-    // }
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem("token");
+    
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    
     return config;
   },
   (error: AxiosError) => {
+    console.error("❌ Request Error:", error);
     return Promise.reject(error);
   }
 );
+
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse) => {
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error: AxiosError) => {
+    console.error("❌ Response Error:", error.response?.status, error.response?.data);
+
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    
+    return Promise.reject(error);
+  }
+);
+export const getDashboardData = async () => {
+  try {
+    const response = await axiosInstance.get("/dashboard/summary");
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error fetching dashboard data:", error);
+    throw error;
+  }
+};
+
+export default axiosInstance;

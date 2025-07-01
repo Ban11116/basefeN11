@@ -1,71 +1,90 @@
-import { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { Form, Input, Tooltip, message } from 'antd';
+import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../../services/auth/auth.service';
 
-export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
+const ClientLogin: React.FC = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const onFinish = async (values: { email: string; password: string }) => {
+    setLoading(true);
+    try {
+      await login(values.email, values.password);
+      message.success('Đăng nhập thành công!');
+      navigate('/');
+    } catch (err: any) {
+      message.error(err.message || 'Đăng nhập thất bại.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1e1e1e] px-4">
-      <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-base text-black mb-1">Welcome !</h2>
-        <h1 className="text-2xl font-bold text-black mb-1">Sign in to</h1>
-        <p className="text-sm text-gray-600 mb-6">Lorem Ipsum is simply</p>
-
-        <form className="space-y-4">
-          <div>
-            <label className="block text-sm text-black mb-1">User name</label>
-            <input
-              type="text"
-              placeholder="Enter your user name"
-              className="w-full border border-gray-300 rounded px-3 py-2 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-black mb-1">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your Password"
-                className="w-full border border-gray-300 rounded px-3 py-2 pr-10 outline-none"
-              />
-              <span
-                className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
+    <div className="flex justify-center items-center min-h-screen bg-[#f6f8fc]">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm text-center">
+        <div className="flex justify-center mb-6">
+          <Tooltip title="User Login" placement="right">
+            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+              <UserOutlined style={{ fontSize: 24, color: '#52c41a' }} />
             </div>
-          </div>
+          </Tooltip>
+        </div>
 
-          <div className="flex justify-between items-center text-sm mt-1">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
-              Remember me
-            </label>
-            <a href="#" className="text-gray-500 hover:underline">
-              Forgot Password ?
-            </a>
+        <h2 className="text-xl font-semibold">Welcome Back!</h2>
+        <p className="text-gray-500 text-sm mb-6">Login to your account</p>
+
+        <Form layout="vertical" onFinish={onFinish}>
+          <Form.Item
+            name="email"
+            rules={[{ required: true, message: 'Please enter your email' }]}
+          >
+            <Input
+              size="large"
+              placeholder="Email Address"
+              prefix={<MailOutlined />}
+              className="bg-gray-50"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: 'Please enter your password' }]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="Password"
+              prefix={<LockOutlined />}
+              className="bg-gray-50"
+            />
+          </Form.Item>
+
+          <div className="flex justify-between mb-4 text-sm">
+            <div />
+            <Link to="/forgotpassword" className="text-blue-500 hover:underline">
+              Recover Password
+            </Link>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition mt-4"
+            disabled={loading}
+            className="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-lg text-base font-semibold"
           >
-            Login
+            {loading ? 'Đang đăng nhập...' : 'Login'}
           </button>
-        </form>
+        </Form>
 
-        <p className="text-center text-sm text-gray-400 mt-6">
-          Don’t have an Account?{" "}
-          <Link to="/register">
-          <span className="text-black font-semibold cursor-pointer hover:underline">
+        <p className="text-sm text-gray-500 mt-6">
+          Don’t have an account?{' '}
+          <Link to="/register" className="text-blue-500 hover:underline">
             Register
-          </span>
           </Link>
         </p>
       </div>
     </div>
   );
-}
+};
+
+export default ClientLogin;

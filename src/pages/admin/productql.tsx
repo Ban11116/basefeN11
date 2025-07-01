@@ -1,392 +1,329 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
-  Tag,
   Input,
-  Button,
-  Select,
   Space,
   Typography,
-  Dropdown,
+  Spin,
+  message,
+  Modal,
+  Button,
   Menu,
-  Row,
-  Col,
+  Dropdown,
 } from "antd";
+import { SearchOutlined, PlusOutlined, MoreOutlined } from "@ant-design/icons";
 import {
-  FilterOutlined,
-  SearchOutlined,
-  UserOutlined,
-  AppstoreOutlined,
-  DownOutlined,
-} from "@ant-design/icons";
-import { Link } from "react-router-dom";
+  fetchAllProducts,
+  updateProduct,
+  createProduct,
+  softDeleteProduct,
+  restoreProduct,
+} from "../../services/admin/productql.serive";
 
-const { Option } = Select;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface Product {
-  key: string;
+  _id: string;
   name: string;
-  category: string;
-  price: string;
-  stock: number | string;
-  discount: string;
-  value: string;
-  status: "Published" | "Unpublished";
-  image: string;
+  description?: string;
+  brand_id?: string;
+  category_id?: string;
+  price: number;
+  total_stock: number;
+  createdAt?: string;
+  updatedAt?: string;
+  image_url?: string;
+  deleted_at?: string;
 }
 
-const initialProducts: Product[] = [
-  {
-    key: "1",
-    name: "iPhone 13 Pro",
-    category: "Gadgets",
-    price: "₦1,225,000.00",
-    stock: 8,
-    discount: "₦0.00",
-    value: "₦50,000.00",
-    status: "Published",
-    image: "📱",
-  },
-  {
-    key: "2",
-    name: "iPhone 13 Pro",
-    category: "Gadgets",
-    price: "₦725,000.00",
-    stock: 12,
-    discount: "₦0.00",
-    value: "₦50,000.00",
-    status: "Unpublished",
-    image: "📱",
-  },
-  {
-    key: "3",
-    name: "Polo T-Shirt",
-    category: "Fashion",
-    price: "₦25,000.00",
-    stock: 120,
-    discount: "₦0.00",
-    value: "₦0.00",
-    status: "Published",
-    image: "👕",
-  },
-  {
-    key: "4",
-    name: "Polo T-Shirt",
-    category: "Fashion",
-    price: "₦25,000.00",
-    stock: "Out of Stock",
-    discount: "₦0.00",
-    value: "₦0.00",
-    status: "Unpublished",
-    image: "👕",
-  },
-];
-const menu = (
-  <Menu>
-    <Menu.Item>This Week</Menu.Item>
-    <Menu.Item>Last Week</Menu.Item>
-  </Menu>
-);
 const ProductQl: React.FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-  };
-
-  const filteredProducts = initialProducts.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
-    const matchesStatus = statusFilter ? item.status === statusFilter : true;
-    return matchesSearch && matchesCategory && matchesStatus;
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editValues, setEditValues] = useState({
+    name: "",
+    price: 0,
+    image_url: "",
+    total_stock: 0,
+    description: "",
+    brand_id: "",
+    category_id: "",
+  });
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    brand_id: "",
+    category_id: "",
+    price: 0,
+    total_stock: 0,
+    image_url: "",
   });
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAllProducts();
+      if (data?.data && Array.isArray(data.data)) {
+        setProducts(data.data);
+      } else {
+        setProducts([]);
+      }
+    } catch {
+      message.error("Failed to load products");
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = products.filter((item) =>
+    item.name?.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setEditValues({
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url || "",
+      total_stock: product.total_stock,
+      description: product.description || "",
+      brand_id: product.brand_id || "",
+      category_id: product.category_id || "",
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (editingProduct) {
+      try {
+        await updateProduct(editingProduct._id, editValues);
+        message.success("Product updated successfully!");
+        setEditingProduct(null);
+        loadData();
+      } catch {
+        message.error("Update failed!");
+      }
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!newProduct.name || newProduct.price <= 0 || newProduct.total_stock <= 0) {
+      message.warning("Please fill in name, price (>0) and total stock (>0)");
+      return;
+    }
+    try {
+      await createProduct(newProduct);
+      message.success("Product created successfully!");
+      setAddModalVisible(false);
+      setNewProduct({
+        name: "",
+        description: "",
+        brand_id: "",
+        category_id: "",
+        price: 0,
+        total_stock: 0,
+        image_url: "",
+      });
+      loadData();
+    } catch {
+      message.error("Create failed!");
+    }
+  };
+
+  const handleSoftDelete = async (productId: string) => {
+    try {
+      await softDeleteProduct(productId);
+      message.success("Product soft-deleted");
+      loadData();
+    } catch {
+      message.error("Failed to soft delete product");
+    }
+  };
+
+  const handleRestore = async (productId: string) => {
+    try {
+      await restoreProduct(productId);
+      message.success("Product restored");
+      loadData();
+    } catch {
+      message.error("Failed to restore product");
+    }
+  };
+
   const columns = [
-    {
-      title: "",
-      dataIndex: "checkbox",
-      render: () => <input type="checkbox" />,
-    },
     {
       title: "Product Name",
       dataIndex: "name",
       render: (text: string, record: Product) => (
         <Space>
-          <span style={{ fontSize: 20 }}>{record.image}</span>
+          {record.image_url && (
+            <img
+              src={record.image_url}
+              alt={text}
+              style={{ width: 30, height: 30, objectFit: "cover" }}
+            />
+          )}
           <span>{text}</span>
         </Space>
       ),
     },
     {
-      title: "Category",
-      dataIndex: "category",
+      title: "Description",
+      dataIndex: "description",
     },
     {
-      title: "Unit Price",
+      title: "Price",
       dataIndex: "price",
+      render: (price: number) => `$${price.toFixed(2)}`,
     },
     {
-      title: "In-Stock",
-      dataIndex: "stock",
+      title: "Stock",
+      dataIndex: "total_stock",
     },
     {
-      title: "Discount",
-      dataIndex: "discount",
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: "Total Value",
-      dataIndex: "value",
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: () => (
-        <Select
-          defaultValue="Publish"
-          size="small"
-          style={{ width: 100 }}
-          suffixIcon={<DownOutlined />}
-        >
-          <Option value="publish">Publish</Option>
-          <Option value="unpublish">Unpublish</Option>
-        </Select>
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (status: "Published" | "Unpublished") => (
-        <Tag
-          color={status === "Published" ? "#e6f4ff" : "#fff7e6"}
-          style={{ color: status === "Published" ? "#1677ff" : "#fa8c16" }}
-        >
-          {status}
-        </Tag>
-      ),
+      title: "Actions",
+      dataIndex: "actions",
+      render: (_: any, record: Product) => {
+        const menu = (
+          <Menu>
+            <Menu.Item key="edit" onClick={() => handleEdit(record)}>
+              ✏️ Edit
+            </Menu.Item>
+            {record.deleted_at ? (
+              <Menu.Item key="restore" onClick={() => handleRestore(record._id)}>
+                ♻️ Restore
+              </Menu.Item>
+            ) : (
+              <Menu.Item key="softDelete" onClick={() => handleSoftDelete(record._id)}>
+                🗑️ Soft Delete
+              </Menu.Item>
+            )}
+          </Menu>
+        );
+        return (
+          <Dropdown overlay={menu} trigger={["click"]}>
+            <Button icon={<MoreOutlined />} />
+          </Dropdown>
+        );
+      },
     },
   ];
 
   return (
     <div style={{ padding: 24, background: "#f9fafc" }}>
- <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-  <Col>
-    <Title level={5} style={{ margin: 0 }}>Inventory Summary</Title>
-  </Col>
-  <Link to="/admin/newproduct" aria-label="Them san pham">
-          <Col>
-    <Button type="primary">+ Add a New Product</Button>
-  </Col>
-          </Link>
-  
-</Row>
-<Row gutter={16} style={{ marginBottom: 24 }} align="stretch">
-        <Col flex={1.2}>
-          <div
-            style={{
-              background: "#4E6AF3",
-              borderRadius: 12,
-              padding: 20,
-              height: "100%",
-              color: "#fff",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                gap: 8,
-              }}
-            >
-              <div
-                style={{
-                  background: "#f0f4ff",
-                  padding: 10,
-                  borderRadius: 10,
-                }}
-              >
-                <AppstoreOutlined style={{ fontSize: 24, color: "#4E6AF3" }} />
-              </div>
-
-              <div>
-                <Text style={{ color: "#fff", fontSize: 14 }}>All Products</Text>
-                <div style={{ fontSize: 22, fontWeight: 700 }}>350</div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: 4,
-              }}
-            >
-              <Text style={{ color: "#fff", fontSize: 14 }}>Active</Text>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>
-                316 <span style={{ fontWeight: 400, fontSize: 16 }}>(90%)</span>
-              </div>
-            </div>
-          </div>
-        </Col>
-
-        <Col flex={0.8}>
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 20,
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            <div
-              style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}
-            >
-              <Dropdown overlay={menu} placement="bottomRight">
-                <Text style={{ color: "#999", cursor: "pointer" }}>
-                  This Week <DownOutlined />
-                </Text>
-              </Dropdown>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                gap: 8,
-              }}
-            >
-              <div
-                style={{
-                  background: "#fff7f0",
-                  padding: 10,
-                  borderRadius: 10,
-                }}
-              >
-                <UserOutlined style={{ fontSize: 24, color: "#d32029" }} />
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 32,
-                  width: "100%",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#d32029",
-                      fontSize: 14,
-                      fontWeight: 500,
-                    }}
-                  >
-                    Low Stock Alert
-                  </Text>
-                  <div style={{ fontSize: 22, fontWeight: 700 }}>23</div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Text style={{ color: "#999", fontSize: 14 }}>Expired</Text>
-                  <div style={{ fontSize: 22, fontWeight: 700 }}>3</div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Text style={{ color: "#999", fontSize: 14 }}>1 Star Rating</Text>
-                  <div style={{ fontSize: 22, fontWeight: 700 }}>2</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Col>
-      </Row>
       <div
         style={{
           display: "flex",
-          flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: 12,
           marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 12,
         }}
       >
-        <Text style={{ fontSize: 16, fontWeight: 600, minWidth: 150 }}>
-          Inventory Items
-        </Text>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 8,
-            alignItems: "center",
-          }}
-        >
+        <Text style={{ fontSize: 16, fontWeight: 600 }}>Inventory Items</Text>
+        <div style={{ display: "flex", gap: 8 }}>
           <Input
             prefix={<SearchOutlined />}
             placeholder="Search by product name"
             value={searchText}
-            onChange={handleSearchChange}
-            style={{ width: 200, minWidth: 150 }}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 220, minWidth: 150 }}
             size="middle"
           />
-
-          
-
-          <Select
-            placeholder="Filter by status"
-            style={{ width: 160 }}
-            allowClear
-            onChange={(value) => setStatusFilter(value)}
-            size="middle"
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setAddModalVisible(true);
+              setNewProduct({
+                name: "",
+                description: "",
+                brand_id: "",
+                category_id: "",
+                price: 0,
+                total_stock: 0,
+                image_url: "",
+              });
+            }}
           >
-            <Option value="Published">Published</Option>
-            <Option value="Unpublished">Unpublished</Option>
-          </Select>
+            Add New Product
+          </Button>
         </div>
       </div>
 
-      <Table
-        rowSelection={{}}
-        columns={columns}
-        dataSource={filteredProducts}
-        scroll={{ x: "max-content" }}
-        pagination={{
-          current: 1,
-          pageSize: 10,
-          total: filteredProducts.length,
-          showSizeChanger: false,
-        }}
-      />
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "50px 0" }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Table
+          rowKey="_id"
+          columns={columns}
+          dataSource={filteredProducts}
+          scroll={{ x: "max-content" }}
+          pagination={{ pageSize: 10, showSizeChanger: false }}
+        />
+      )}
+
+      <Modal
+        title="Edit Product"
+        open={!!editingProduct}
+        onCancel={() => setEditingProduct(null)}
+        onOk={handleUpdate}
+        okText="Update"
+      >
+        {Object.entries(editValues).map(([key, value]) => (
+          <Input
+            key={key}
+            placeholder={key.replace("_", " ").toUpperCase()}
+            type={typeof value === "number" ? "number" : "text"}
+            value={value}
+            onChange={(e) =>
+              setEditValues({
+                ...editValues,
+                [key]: typeof value === "number" ? Number(e.target.value) : e.target.value,
+              })
+            }
+            style={{ marginBottom: 12 }}
+          />
+        ))}
+      </Modal>
+
+      <Modal
+        title="Add New Product"
+        open={addModalVisible}
+        onCancel={() => setAddModalVisible(false)}
+        onOk={handleCreate}
+        okText="Create"
+      >
+        {Object.entries(newProduct).map(([key, value]) => (
+          <div key={key} style={{ marginBottom: 12 }}>
+            <Input
+              placeholder={key.replace("_", " ").toUpperCase()}
+              type={typeof value === "number" ? "number" : "text"}
+              value={value}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  [key]: typeof value === "number" ? Number(e.target.value) : e.target.value,
+                })
+              }
+            />
+          </div>
+        ))}
+      </Modal>
     </div>
   );
 };

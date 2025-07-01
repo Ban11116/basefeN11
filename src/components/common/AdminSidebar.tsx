@@ -1,4 +1,4 @@
-import { Layout, Badge, Tooltip } from 'antd';
+import { Layout, Badge } from "antd";
 import {
   PieChartOutlined,
   AppstoreFilled,
@@ -8,122 +8,107 @@ import {
   SettingOutlined,
   CustomerServiceOutlined,
   GiftOutlined,
-  LogoutOutlined,
-  AppstoreOutlined,
   ClusterOutlined,
-} from '@ant-design/icons';
-import { Link, useLocation } from 'react-router-dom';
+} from "@ant-design/icons";
+import { Link, useLocation } from "react-router-dom";
 
 const { Sider } = Layout;
 
 const iconStyle = {
-  fontSize: '20px',
-  color: '#555',
+  fontSize: "20px",
+  color: "#555",
 };
 
 const activeStyle = {
-  backgroundColor: '#eef1ff',
-  borderRadius: '12px',
-  color: '#3c5eff',
+  backgroundColor: "#eef1ff",
+  borderRadius: "12px",
+  color: "#3c5eff",
 };
 
 const AdminSidebar = () => {
   const location = useLocation();
   const current = location.pathname;
 
+  const menuItems = [
+    { to: "/admin", icon: <AppstoreFilled />, exact: true },
+    { to: "/admin/productql", icon: <ShoppingCartOutlined /> },
+    { to: "/admin/category", icon: <ClusterOutlined /> },
+    { to: "/admin/users", icon: <UserOutlined /> },
+    { to: "/admin/orders", icon: <FolderOpenOutlined /> },
+    { to: "/admin/setting", icon: <SettingOutlined /> },
+  ];
+
   return (
     <Sider
       width={70}
       theme="light"
       style={{
-        height: '100vh',
-        position: 'fixed',
+        height: "100vh",
+        position: "fixed",
         left: 0,
         top: 0,
         bottom: 0,
-        borderRight: '1px solid #f0f0f0',
-        padding: '12px 0',
+        borderRight: "1px solid #f0f0f0",
+        padding: "12px 0",
       }}
     >
       <div
         style={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'center' }}>
-          <Tooltip title="Analytics" placement="right">
-            <PieChartOutlined style={iconStyle} />
-          </Tooltip>
-          <div
-            style={{
-              ...iconStyle,
-              ...(current === '/admin' ? activeStyle : {}),
-              padding: '8px',
-            }}
-          >
-            <Link to="/admin" aria-label="thong ke">
-          <AppstoreFilled />
-          </Link>
-        
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, alignItems: "center" }}>
+          <PieChartOutlined style={iconStyle} />
         </div>
 
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
+            display: "flex",
+            flexDirection: "column",
             gap: 24,
-            alignItems: 'center',
+            alignItems: "center",
             marginTop: 20,
           }}
         >
-          <Link to="/admin/productql" aria-label="ql san pham">
-          <Badge size="small" offset={[6, 0]}>
-            <ShoppingCartOutlined style={iconStyle} />
-          </Badge>
-          </Link>
-          <Link to="/admin/category" aria-label="ql san pham">
-          <Badge size="small" offset={[6, 0]}>
-    <	ClusterOutlined style={iconStyle} />
-  </Badge>
-          
-          </Link>
-          <Link to="/admin/users" aria-label="Ng dùng">
-          <UserOutlined style={iconStyle} />
-          </Link>
-          <Link to="/admin/orders" aria-label="don hang">
-          <FolderOpenOutlined style={iconStyle} />
-          </Link>
-          
-          
-          <Link to="/admin/setting" aria-label="Tai khoan">
-          <SettingOutlined style={iconStyle} />
-          </Link>
-          
+          {menuItems.map(({ to, icon }) => (
+            <Link to={to} key={to}>
+              <div
+                style={{
+                  ...iconStyle,
+                  ...(current === to ? activeStyle : {}),
+                  padding: "8px",
+                }}
+              >
+                {to.includes("productql") || to.includes("category") ? (
+                  <Badge size="small" offset={[6, 0]}>
+                    {icon}
+                  </Badge>
+                ) : (
+                  icon
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
 
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
+            display: "flex",
+            flexDirection: "column",
             gap: 20,
-            alignItems: 'center',
-            marginTop: 'auto',
+            alignItems: "center",
+            marginTop: "auto",
             paddingBottom: 10,
           }}
         >
-          <div style={{ background: '#f5f5f5', padding: 8, borderRadius: '50%' }}>
+          <div style={{ background: "#f5f5f5", padding: 8, borderRadius: "50%" }}>
             <CustomerServiceOutlined style={iconStyle} />
           </div>
-          <div style={{ background: '#fff7e6', padding: 8, borderRadius: '50%' }}>
-            <GiftOutlined style={{ ...iconStyle, color: '#fa8c16' }} />
-          </div>
-          <div style={{ background: '#ffe7e7', padding: 6, borderRadius: '50%' }}>
-            <LogoutOutlined style={{ color: '#f5222d', fontSize: 18 }} />
-
+          <div style={{ background: "#fff7e6", padding: 8, borderRadius: "50%" }}>
+            <GiftOutlined style={{ ...iconStyle, color: "#fa8c16" }} />
           </div>
         </div>
       </div>

@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Products from './Products';
-import TheGoldenOverture from './TheGoldenOverture';
-import KeyNotes from './KeyNotes';
-import TheHeartofElegance from './TheHeartofElegance';
-import Reviews from './Reviews';
-import DiscoverMore from './DiscoverMore';
-import type { Product } from '../types';
-import { getProductById } from '../services/products/product.services';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Products from "./Products";
+import DiscoverMore from "./DiscoverMore";
+import type { Product } from "../types";
+import { getProductById } from "../services/products/product.services";
 
 const ProductsDetail = () => {
   const { id } = useParams();
@@ -16,21 +12,23 @@ const ProductsDetail = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('ProductsDetail useEffect run with id:', id);
-
     const fetchProduct = async () => {
-      setLoading(true); // reset loading khi id thay đổi
-      setError(null); // clear lỗi cũ
+      setLoading(true);
+      setError(null);
+
       try {
         if (id) {
           const data = await getProductById(id);
-          setProduct(data);
+          if (!data || Object.keys(data).length === 0) {
+            setProduct(null);
+          } else {
+            setProduct(data);
+          }
         } else {
-          setError('Không tìm thấy ID sản phẩm.');
-          setProduct(null);
+          setError("Không tìm thấy ID sản phẩm.");
         }
       } catch {
-        alert('Không thể tải chi tiết sản phẩm.');
+        setError("Không thể tải chi tiết sản phẩm.");
       } finally {
         setLoading(false);
       }
@@ -46,10 +44,6 @@ const ProductsDetail = () => {
   return (
     <>
       <Products product={product} />
-      <TheGoldenOverture />
-      <KeyNotes />
-      <TheHeartofElegance />
-      <Reviews />
       <DiscoverMore />
     </>
   );

@@ -1,13 +1,41 @@
-export interface Product {
-  _id: string; // MongoDB tự sinh
+export interface ProductVariant {
+  _id: string;
   product_id: string;
-  name: string;
-  description?: string;
+  volume: number;
   price: number;
-  brand_id: string;       // hoặc: Brand nếu populate
-  category_id: string;    // hoặc: Category nếu populate
-  image_url?: string;
   stock_quantity: number;
-  createdAt: string;      // ISO date string
-  updatedAt: string;      // ISO date string
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  
+}
+
+export interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  total_stock: number;
+  brand_id: string;
+  category_id: string;
+  // Optional:
+  is_deleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  
+}
+
+
+export interface ProductListResponse {
+  page: number;
+  total: number;
+  data: Product[];
+}
+
+export interface ProductDetailResponse {
+  success: boolean;
+  data: Product;
+  message?: string;
 }

@@ -1,212 +1,195 @@
-import { Card, Row, Col, Statistic, Select, Grid } from 'antd';
+import { useEffect, useState } from "react";
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Spin,
+  message,
+  Typography,
+  Space,
+} from "antd";
 import {
   PieChart,
   Pie,
   Cell,
-  Tooltip,
+  Tooltip as ReTooltip,
+  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  ResponsiveContainer
-} from 'recharts';
+  CartesianGrid,
+} from "recharts";
+import {
+  DollarCircleOutlined,
+  ShoppingCartOutlined,
+  UserOutlined,
+  ShoppingOutlined,
+} from "@ant-design/icons";
+import { getDashboardData } from "../../services/admin/dashboard.serive";
+import { getAllOrders } from "../../services/admin/order.serive";
 
-const { Option } = Select;
-const { useBreakpoint } = Grid;
-
-const pieData = [
-  { name: 'Acquisition', value: 40 },
-  { name: 'Purchase', value: 30 },
-  { name: 'Retention', value: 30 }
-];
-
-const COLORS = ['#4B70E2', '#F3B03C', '#CBD5E1'];
-
-const chartData = [
-  { name: 'Sept 10', sales: 30000 },
-  { name: 'Sept 11', sales: 40000 },
-  { name: 'Sept 12', sales: 100000 },
-  { name: 'Sept 13', sales: 70000 },
-  { name: 'Sept 14', sales: 90000 },
-  { name: 'Sept 15', sales: 80000 },
-  { name: 'Sept 16', sales: 95000 }
-];
-
-const orders = Array.from({ length: 12 }, (_, i) => ({
-  key: i + 1,
-  image: 'https://images.pexels.com/photos/1795692/pexels-photo-1795692.jpeg',
-  name: 'Matcha Latte',
-  price: '₦730,000.00',
-  date: '12 Sept 2022',
-  status: i % 3 === 0 ? 'Pending' : 'Completed'
-}));
+const { Title } = Typography;
+const COLORS = ["#4B70E2", "#F3B03C", "#10B981", "#EF4444", "#6366F1"];
 
 const Dashboard = () => {
-  const screens = useBreakpoint();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getDashboardData();
+        const orders = await getAllOrders();
+
+        const ordersByStatus = orders.reduce((acc: Record<string, number>, order: any) => {
+          acc[order.status] = (acc[order.status] || 0) + 1;
+          return acc;
+        }, {});
+        res.ordersByStatus = ordersByStatus;
+
+        const revenueMap = new Map<string, number>();
+        const countMap = new Map<string, number>();
+
+        orders.forEach((order: any) => {
+          const date = new Date(order.order_date).toLocaleDateString("vi-VN");
+          revenueMap.set(date, (revenueMap.get(date) || 0) + (order.total_price || 0));
+          countMap.set(date, (countMap.get(date) || 0) + 1);
+        });
+
+        res.salesByDay = Array.from(revenueMap.entries())
+          .map(([date, total]) => ({ date, total }))
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        res.ordersByDay = Array.from(countMap.entries())
+          .map(([date, count]) => ({ date, count }))
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        setData(res);
+      } catch {
+        message.error("Không thể tải dữ liệu dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <Spin tip="Đang tải dữ liệu..." style={{ width: "100%" }} />;
+  if (!data) return <p style={{ color: "red" }}>Không có dữ liệu dashboard.</p>;
+
+  const statCards = [
+    {
+      title: "Tổng đơn hàng",
+      value: data.totalOrders,
+      icon: <ShoppingCartOutlined style={{ color: "#4B70E2" }} />,
+      color: "#E0EDFF",
+    },
+    {
+      title: "Tổng người dùng",
+      value: data.totalUsers,
+      icon: <UserOutlined style={{ color: "#10B981" }} />,
+      color: "#D1FAE5",
+    },
+    {
+      title: "Tổng doanh thu",
+      value: `$${data.totalRevenue?.toFixed(2)}`,
+      icon: <DollarCircleOutlined style={{ color: "#F59E0B" }} />,
+      color: "#FEF3C7",
+    },
+    {
+      title: "Đơn hàng hôm nay",
+      value: data.todayOrders,
+      icon: <ShoppingOutlined style={{ color: "#6366F1" }} />,
+      color: "#E0E7FF",
+    },
+  ];
+
+  const pieData = Object.entries(data.ordersByStatus || {}).map(([status, count]) => ({
+    name: status,
+    value: count,
+  }));
 
   return (
-    
-    <div style={{ padding: 16, maxWidth: '100%' }}>
+    <div style={{ padding: 24 }}>
+      <Title level={3} style={{ marginBottom: 24 }}>📊 Thống kê tổng quan</Title>
+
       <Row gutter={[16, 16]}>
-        {/* Statistics Cards */}
-        <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-          <Card>
-            <Statistic title="Sales" value="₦4,000,000.00" />
-            <Statistic
-              title="Volume"
-              value={450}
-              suffix={<span style={{ color: '#52c41a' }}>+20%</span>}
-            />
+        {statCards.map((card, index) => (
+          <Col xs={24} sm={12} md={6} key={index}>
+            <Card style={{ backgroundColor: card.color, border: "none", borderRadius: 10 }}>
+              <Space align="center">
+                {card.icon}
+                <Statistic title={card.title} value={card.value} />
+              </Space>
+            </Card>
+          </Col>
+        ))}
+
+        <Col xs={24} md={12}>
+          <Card title="📦 Trạng thái đơn hàng" style={{ borderRadius: 10 }}>
+            {pieData.length ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={110}
+                    label
+                  >
+                    {pieData.map((entry, i) => (
+                      <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <ReTooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p>Không có dữ liệu trạng thái đơn hàng.</p>
+            )}
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-          <Card>
-            <Statistic title="Customers" value={1250} suffix={<span style={{ color: '#52c41a' }}>+15.80%</span>} />
-            <Statistic title="Active" value={1180} suffix={<span style={{ color: '#52c41a' }}>85%</span>} />
+        <Col xs={24} md={12}>
+          <Card title="💰 Doanh thu theo ngày" style={{ borderRadius: 10 }}>
+            {data.salesByDay?.length ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data.salesByDay}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <ReTooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
+                  <Bar dataKey="total" fill="#4B70E2" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p>Không có dữ liệu doanh thu.</p>
+            )}
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-          <Card>
-            <Statistic title="All Orders" value={450} />
-            <Row gutter={8}>
-              <Col span={12}>
-                <Statistic title="Pending" value={5} />
-              </Col>
-              <Col span={12}>
-                <Statistic title="Completed" value={445} />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col xs={24} lg={16}>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} md={12}>
-              <Card title="Marketing">
-                <ResponsiveContainer width="100%" height={197}>
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value">
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: 12 }}>
-                  <span style={{ color: '#4B70E2' }}>Acquisition</span>
-                  <span style={{ color: '#F3B03C' }}>Purchase</span>
-                  <span style={{ color: '#CBD5E1' }}>Retention</span>
-                </div>
-              </Card>
-            </Col>
-
-            <Col xs={24} md={12}>
-              <Card style={{ backgroundColor: '#4B70E2', color: 'white' }}>
-                <div>
-                  <h4>All Products</h4>
-                  <h2>45</h2>
-                  <div style={{ marginTop: 8 }}>
-                    <p>Active</p>
-                    <h3>32 <span style={{ color: '#52c41a' }}>+24%</span></h3>
-                  </div>
-                </div>
-              </Card>
-
-              <Card extra={<div style={{ fontSize: 13 }}>This Week</div>}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ color: '#cf1322', fontSize: 12 }}>Abandoned Cart</p>
-                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: 16, color: '#cf1322', marginRight: 6 }}>20%</span>
-                      <span style={{ color: '#52c41a', fontSize: 12 }}>+0.00%</span>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: 12 }}>Customers</p>
-                    <span style={{ fontSize: 16 }}>30</span>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-
-            <Col xs={24}>
-              <Card
-                title="Summary"
-                extra={
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <Select defaultValue="Sales" size="small" style={{ width: 100 }}>
-                      <Option value="Sales">Sales</Option>
-                    </Select>
-                    <Select defaultValue="Last 7 Days" size="small" style={{ width: 120 }}>
-                      <Option value="Last 7 Days">Last 7 Days</Option>
-                    </Select>
-                  </div>
-                }
-              >
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="sales" fill="#4B70E2" barSize={20} radius={[10, 10, 0, 0]} />
+        <Col xs={24}>
+          <Card title="🧾 Số đơn hàng theo ngày" style={{ borderRadius: 10 }}>
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ minWidth: 800 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={data.ordersByDay}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis allowDecimals={false} />
+                    <ReTooltip formatter={(v: number) => `${v} đơn`} />
+                    <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              </Card>
-            </Col>
-          </Row>
+              </div>
+            </div>
+          </Card>
         </Col>
-
-     
-        <Col xs={24} lg={8}>
-  <Card
-    title="Recent Orders"
-    style={{
-      maxHeight: '107vh',
-      overflowY: 'auto',
-      padding: 0,
-      scrollbarWidth: 'none',
-      msOverflowStyle: 'none'
-    }}
-    bodyStyle={{ padding: 0 }}
-  >
-    {orders.map(order => (
-      <div
-        key={order.key}
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: 16,
-          borderBottom: '1px solid #f0f0f0'
-        }}
-      >
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <img
-            src={order.image}
-            alt={order.name}
-            style={{ width: 36, height: 36, borderRadius: 4, objectFit: 'cover' }}
-          />
-          <div>
-            <div style={{ fontWeight: 500 }}>{order.name}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>{order.price} × 1</div>
-          </div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{
-            fontWeight: 500,
-            color: order.status === 'Completed' ? '#52c41a' : '#faad14'
-          }}>
-            {order.status}
-          </div>
-          <div style={{ fontSize: 12, color: '#666' }}>{order.date}</div>
-        </div>
-      </div>
-    ))}
-  </Card>
-</Col>
-
       </Row>
     </div>
   );

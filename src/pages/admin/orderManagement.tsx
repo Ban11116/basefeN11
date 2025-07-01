@@ -7,14 +7,12 @@ import {
   Select,
   Card,
   Empty,
+  Spin,
 } from "antd";
-import {
-  SearchOutlined,
-  FilterOutlined,
-  ShoppingCartOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useNavigate } from "react-router-dom";
+import { getAllOrders } from "../../services/admin/order.serive";
 
 const { Option } = Select;
 
@@ -22,72 +20,83 @@ interface Order {
   key: string;
   customer: string;
   date: string;
-  type: string;
+  address: string;
   tracking: string;
   total: string;
   status: string;
 }
 
-const initialOrders: Order[] = [
-  {
-    key: "1",
-    customer: "Ban",
-    date: "12 Aug 2022 - 12:25 am",
-    type: "Home Delivery",
-    tracking: "93487r9",
-    total: "₦25,000.00",
-    status: "Completed",
-  },
-  {
-    key: "2",
-    customer: "Nam",
-    date: "12 Aug 2022 - 12:25 am",
-    type: "Home Delivery",
-    tracking: "abc123",
-    total: "₦25,000.00",
-    status: "In-Progress",
-  },
-  {
-    key: "3",
-    customer: "Đạt",
-    date: "12 Aug 2022 - 12:25 am",
-    type: "Home Delivery",
-    tracking: "xyz789",
-    total: "₦25,000.00",
-    status: "Pending",
-  },
-];
-
-const statusColors: Record<string, string> = {
-  Completed: "green",
-  Pending: "orange",
-  Canceled: "red",
-  "In-Progress": "blue",
+const statusLabels: Record<string, string> = {
+  delivered: "Completed",
+  pending: "Pending",
+  canceled: "Canceled",
+  deferred: "Deferred",
+  shipped: "Shipped",
+  processing: "Processing",
 };
 
-const actionOptions = ["Completed", "In-Progress", "Pending"];
+const statusColors: Record<string, string> = {
+  delivered: "green",
+  pending: "orange",
+  canceled: "red",
+  deferred: "blue",
+  shipped: "purple",
+  processing: "gold",
+};
 
 const OrderManagement: React.FC = () => {
   const navigate = useNavigate();
 
-  const [orders] = useState<Order[]>(initialOrders);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchText, setSearchText] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const filtered = orders.filter((order) => {
-      const matchesSearch =
-        order.customer.toLowerCase().includes(searchText.toLowerCase()) ||
-        order.tracking.toLowerCase().includes(searchText.toLowerCase());
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const rawOrders = await getAllOrders();
 
-      const matchesStatus =
-        statusFilter === "All" || order.status === statusFilter;
+        const mappedOrders: Order[] = rawOrders.map((order: any, index: number) => ({
+          key: order._id || String(index),
+          customer: order.user_id?.name || "Unknown",
+          date: new Date(order.order_date).toLocaleDateString(),
+          address: order.shipping_address || "N/A",
+          tracking: order._id?.slice(-6)?.toUpperCase() || "N/A",
+          total: order.total_price?.toLocaleString("vi-VN") + " ₫",
+          status: order.status || "pending",  // Giữ nguyên trạng thái gốc
+        }));
 
-      return matchesSearch && matchesStatus;
-    });
+        setOrders(mappedOrders);
+        setFilteredOrders(mappedOrders);
+      } catch (error) {
+        console.error("❌ Lỗi khi tải danh sách đơn hàng:", error);
+        setOrders([]);
+        setFilteredOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setFilteredOrders(filtered);
+    fetchOrders();
+  }, []);
+
+  useEffect(() => {
+    let result = [...orders];
+
+    if (searchText) {
+      result = result.filter((o) =>
+        o.customer.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "All") {
+      result = result.filter((o) => o.status === statusFilter);
+    }
+
+    setFilteredOrders(result);
   }, [searchText, statusFilter, orders]);
 
   const columns: ColumnsType<Order> = [
@@ -100,55 +109,43 @@ const OrderManagement: React.FC = () => {
       title: "Order Date",
       dataIndex: "date",
       key: "date",
-      responsive: ["md"],
     },
     {
-      title: "Order Type",
-      dataIndex: "type",
-      key: "type",
-      responsive: ["md"],
+      title: "Shipping Address",
+      dataIndex: "address",
+      key: "address",
     },
     {
       title: "Tracking ID",
       dataIndex: "tracking",
       key: "tracking",
-      responsive: ["md"],
     },
     {
-      title: "Order Total",
+      title: "Total",
       dataIndex: "total",
       key: "total",
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record: Order) => (
-        <Select defaultValue={record.status} style={{ width: 120 }}>
-          {actionOptions.map((status) => (
-            <Option key={status} value={status}>
-              {status}
-            </Option>
-          ))}
-        </Select>
-      ),
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
-        <Tag color={statusColors[status] || "default"}>{status}</Tag>
+        <Tag color={statusColors[status] || "default"}>
+          {statusLabels[status] || status}
+        </Tag>
       ),
     },
   ];
 
   const total = orders.length;
-  const completed = orders.filter((o) => o.status === "Completed").length;
-  const pending = orders.filter((o) => o.status === "Pending").length;
-  const canceled = orders.filter((o) => o.status === "Canceled").length;
+  const completed = orders.filter((o) => o.status === "delivered").length;
+  const pending = orders.filter((o) => o.status === "pending").length;
+  const canceled = orders.filter((o) => o.status === "canceled").length;
 
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-white rounded-xl shadow-sm w-full overflow-x-auto">
+      <div className="text-xl font-semibold mb-4">Quản lý đơn hàng</div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="text-center" bordered={false}>
           <div className="text-gray-500 text-sm">All Orders</div>
@@ -169,10 +166,10 @@ const OrderManagement: React.FC = () => {
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-        <h2 className="text-xl font-semibold whitespace-nowrap">Orders</h2>
+        <h2 className="text-lg font-semibold whitespace-nowrap">Orders</h2>
         <div className="flex flex-wrap gap-2 items-center justify-start md:justify-end">
           <Input
-            placeholder="Search"
+            placeholder="Search customer"
             prefix={<SearchOutlined />}
             className="w-full sm:w-48"
             value={searchText}
@@ -184,24 +181,28 @@ const OrderManagement: React.FC = () => {
             className="w-full sm:w-32"
           >
             <Option value="All">All</Option>
-            <Option value="Completed">Completed</Option>
-            <Option value="Pending">Pending</Option>
-            <Option value="In-Progress">In-Progress</Option>
-            <Option value="Canceled">Canceled</Option>
+            <Option value="delivered">Completed</Option>
+            <Option value="pending">Pending</Option>
+            <Option value="canceled">Canceled</Option>
+            <Option value="deferred">Deferred</Option>
+            <Option value="shipped">Shipped</Option>
+            <Option value="processing">Processing</Option>
           </Select>
         </div>
       </div>
 
-      {filteredOrders.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-20">
+          <Spin size="large" />
+        </div>
+      ) : filteredOrders.length === 0 ? (
         <div className="py-20 text-center">
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={
               <>
-                <p className="text-lg font-medium">No Orders Yet?</p>
-                <p className="text-gray-500">
-                  Add products to your store and start selling to see orders here.
-                </p>
+                <p className="text-lg font-medium">No Orders Found</p>
+                <p className="text-gray-500">Add products and receive orders to manage them here.</p>
               </>
             }
           >
@@ -215,7 +216,7 @@ const OrderManagement: React.FC = () => {
           columns={columns}
           dataSource={filteredOrders}
           pagination={{ pageSize: 5 }}
-          scroll={{ x: 600 }}
+          scroll={{ x: 800 }}
           onRow={(record) => ({
             onClick: () => navigate(`/admin/orders/${record.key}`),
             style: { cursor: "pointer" },

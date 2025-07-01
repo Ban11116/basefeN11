@@ -1,121 +1,100 @@
-import React, { useState } from "react";
-import { Tabs, Form, Input, Button, Select, Upload, Avatar } from "antd";
-import { UserOutlined, MailOutlined, HomeOutlined } from "@ant-design/icons";
-import { UploadOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { Form, Input, Button, Typography, Spin, notification } from "antd";
+import { getCurrentUser } from "../../services/auth/auth.service";
+import { updateUser } from "../../services/admin/user.serive";
 
-const { TabPane } = Tabs;
-const { Option } = Select;
+const { Title } = Typography;
 
-const AccountSettings: React.FC = () => {
+const AccountSetting: React.FC = () => {
   const [form] = Form.useForm();
-  const [avatar, setAvatar] = useState<string>("https://via.placeholder.com/100");
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string>("");
 
-  const handleAvatarChange = (info: any) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => setAvatar(reader.result as string));
-    reader.readAsDataURL(info.file.originFileObj);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = getCurrentUser();
+
+        if (!currentUser || !currentUser._id) {
+          notification.error({ message: "Không tìm thấy thông tin người dùng" });
+          return;
+        }
+
+        setUserId(currentUser._id);
+        form.setFieldsValue({
+          name: currentUser.name,
+          email: currentUser.email,
+          phone: currentUser.phone,
+          address: currentUser.address,
+        });
+      } catch (error) {
+        console.error("get user error:", error);
+        notification.error({ message: "Không thể tải thông tin người dùng" });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [form]);
+
+  const handleUpdate = async () => {
+    try {
+      const values = await form.validateFields();
+      const updatedUser = await updateUser(userId, values);
+
+      const currentUser = getCurrentUser();
+      const newUser = { ...currentUser, ...updatedUser };
+      localStorage.setItem("user", JSON.stringify(newUser));
+
+      notification.success({ message: "Cập nhật thành công!" });
+      form.setFieldsValue(newUser);
+    } catch (error) {
+      console.error("update user error:", error);
+      notification.error({ message: "Không thể cập nhật người dùng" });
+    }
   };
 
-  return (
-    <div className="bg-[#f9fbfd] min-h-screen py-10 px-6 md:px-10">
-      <div className="bg-white rounded-xl shadow-sm p-6 md:p-10">
-        <Tabs defaultActiveKey="1" className="mb-6">
-          <TabPane tab={<span className="font-medium">Account</span>} key="1" />
-          <TabPane tab="Business" key="2" />
-          <TabPane tab="Security" key="3" />
-        </Tabs>
-
-        <h2 className="text-xl font-semibold mb-6">Account Settings</h2>
-
-        <div className="flex flex-col md:flex-row justify-between gap-8">
-          <Form
-            form={form}
-            layout="vertical"
-            className="flex-1 max-w-xl"
-            initialValues={{
-              firstName: "Ban",
-              lastName: "Le",
-              email: "banlnph51162@gmail.com",
-              phone: "0806550633",
-              address: "Hoai duc",
-              city: "Ha noi",
-              country: "Thai binh",
-              state: "Hoang hoa",
-            }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Item label="First Name" name="firstName">
-                <Input prefix={<UserOutlined />} />
-              </Form.Item>
-              <Form.Item label="Last Name" name="lastName">
-                <Input />
-              </Form.Item>
-            </div>
-
-            <Form.Item label="Email" name="email">
-              <Input prefix={<MailOutlined />} />
-            </Form.Item>
-
-            <Form.Item label="Phone Number" name="phone">
-              <Input
-                addonBefore={
-                  <span className="flex items-center gap-1">
-                    <img src="" alt="Vietnam" className="w-5 h-4 object-cover" />
-                    +84
-                  </span>
-                }
-              />
-            </Form.Item>
-
-            <Form.Item label="Address" name="address">
-              <Input prefix={<HomeOutlined />} />
-            </Form.Item>
-
-            <Form.Item label="City" name="city">
-              <Input />
-            </Form.Item>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Item label="Country" name="country">
-                <Select>
-                  <Option value="Nigeria">Nigeria</Option>
-                  <Option value="Ghana">Ghana</Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="State" name="state">
-                <Select>
-                  <Option value="Lagos">Lagos</Option>
-                  <Option value="Abuja">Abuja</Option>
-                </Select>
-              </Form.Item>
-            </div>
-          </Form>
-
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <Avatar src={avatar} size={96} className="rounded-md" />
-              <Upload
-  showUploadList={false}
-  onChange={handleAvatarChange}
-  beforeUpload={(file) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      alert("Chỉ chấp nhận ảnh định dạng JPG hoặc PNG!");
-    }
-    return isJpgOrPng || Upload.LIST_IGNORE;
-}}
-  className="absolute top-0 right-0 bg-white rounded-full p-1 shadow-md cursor-pointer"
->
-  <UploadOutlined />
-</Upload>
-
-            </div>
-            <Button type="primary" className="w-32">Update</Button>
-          </div>
-        </div>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Spin size="large" />
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-8 bg-white rounded-lg shadow-sm max-w-3xl">
+      <Title level={4}>Account Settings</Title>
+      <Form form={form} layout="vertical" onFinish={handleUpdate} className="mt-6">
+        <Form.Item
+          label="Name"
+          name="name"
+          rules={[{ required: true, message: "Please enter your name" }]}
+        >
+          <Input />
+        </Form.Item>
+
+        <Form.Item label="Email" name="email">
+          <Input disabled />
+        </Form.Item>
+
+        <Form.Item label="Phone Number" name="phone">
+          <Input />
+        </Form.Item>
+
+        <Form.Item label="Address" name="address">
+          <Input />
+        </Form.Item>
+
+        <div className="flex justify-end">
+          <Button type="primary" htmlType="submit">
+            Update
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 };
 
-export default AccountSettings;
+export default AccountSetting;
